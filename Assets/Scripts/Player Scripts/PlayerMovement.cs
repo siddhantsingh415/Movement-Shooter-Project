@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-    private float speed = 35.0f;
+    public float speed = 35.0f;
     private Rigidbody rb;
     private PlayerInput playerInput;
     private Camera mainCamera;
