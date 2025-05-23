@@ -16,7 +16,7 @@ public class PlayerMovement : MonoBehaviour
     bool isDashing = false;
     public float dashingPower = 200f;
     private float dashDuration = 0.3f;
-    private float dashCooldown = 1f;
+    private float dashCooldown = 0.5f;
 
 
     // Start is called once before the first execution of Update
