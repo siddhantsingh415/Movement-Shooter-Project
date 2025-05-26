@@ -40,6 +40,8 @@ public class PlayerMovement : MonoBehaviour
         DashRecharge();
     }
 
+    // methods for player movement and camera control
+
     void movePlayer()
     {
         // Create a new Vector3 for movement
@@ -56,6 +58,9 @@ public class PlayerMovement : MonoBehaviour
         mainCamera.transform.eulerAngles = new Vector3(cameraRotation.pitch, cameraRotation.yaw, 0.0f);
         transform.eulerAngles = new Vector3(0.0f, cameraRotation.yaw, 0.0f);
     }
+
+    // methods and coroutines for dashing and applying cooldowns
+
     private void dodgeDash()
     {
         canDash = (dashCharges > 0);
@@ -69,7 +74,6 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // redo tomorrow to have two coroutienes 1 to control the dash and one to control cooldown for dash charges
     private IEnumerator Dash()
     {
         Vector3 movement = new Vector3(playerInput.actions["Move"].ReadValue<Vector2>().x, 0, playerInput.actions["Move"].ReadValue<Vector2>().y);
