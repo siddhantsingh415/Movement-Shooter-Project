@@ -16,7 +16,8 @@ public class PlayerMovement : MonoBehaviour
     bool isDashing = false;
     public float dashingPower = 200f;
     private float dashDuration = 0.5f;
-    private float dashCooldown = 2.0f;
+    private float dashCooldown = 3.0f;
+    private float midDashDuration = 0.01f;
     private int dashCharges = 2;
 
 
@@ -36,6 +37,7 @@ public class PlayerMovement : MonoBehaviour
         movePlayer();
         look();
         dodgeDash();
+        rechargeDash();
     }
 
     void movePlayer()
@@ -56,7 +58,7 @@ public class PlayerMovement : MonoBehaviour
     }
     private void dodgeDash()
     {
-        if (canDash)
+        if (canDash && !isDashing)
         {
             InputAction dashinput = playerInput.actions["Dash"];
             if (dashinput.WasPerformedThisFrame() && dashCharges > 0)
@@ -64,11 +66,16 @@ public class PlayerMovement : MonoBehaviour
                 StartCoroutine(Dash());
             }
         }
-        if (dashCharges < 2)
-            {
-                StartCoroutine(DashRecharge());
-            }
     }
+
+    private void rechargeDash()
+    {
+        if (dashCharges < 2)
+        {
+            StartCoroutine(DashRecharge());
+        }
+    }
+
     // redo tomorrow to have two coroutienes 1 to control the dash and one to control cooldown for dash charges
     private IEnumerator Dash()
     {
@@ -79,14 +86,18 @@ public class PlayerMovement : MonoBehaviour
         dashCharges--;
         yield return new WaitForSeconds(dashDuration);
         rb.linearVelocity = Vector3.zero;
-        isDashing = false;;
+        yield return new WaitForSeconds(midDashDuration);
+        isDashing = false;
         canDash = true;
     }
 
     private IEnumerator DashRecharge()
     {
-        yield return new WaitForSeconds(dashCooldown);
-        dashCharges++;
+        for (int i = 0; i < 2 - dashCharges; i++)
+        {
+            yield return new WaitForSeconds(dashCooldown);
+            dashCharges++;
+        }
     }
 }
 
