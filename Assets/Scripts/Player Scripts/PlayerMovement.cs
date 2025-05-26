@@ -19,6 +19,7 @@ public class PlayerMovement : MonoBehaviour
     private float dashCooldown = 3.0f;
     private float midDashDuration = 0.01f;
     private int dashCharges = 2;
+    private float dashTimer = 3.0f;
 
 
     // Start is called once before the first execution of Update
@@ -37,7 +38,7 @@ public class PlayerMovement : MonoBehaviour
         movePlayer();
         look();
         dodgeDash();
-        rechargeDash();
+        DashRecharge();
     }
 
     void movePlayer()
@@ -58,21 +59,14 @@ public class PlayerMovement : MonoBehaviour
     }
     private void dodgeDash()
     {
+        canDash = (dashCharges > 0) && !isDashing;
         if (canDash && !isDashing)
         {
             InputAction dashinput = playerInput.actions["Dash"];
-            if (dashinput.WasPerformedThisFrame() && dashCharges > 0)
+            if (dashinput.WasPressedThisFrame() && dashCharges > 0)
             {
                 StartCoroutine(Dash());
             }
-        }
-    }
-
-    private void rechargeDash()
-    {
-        if (dashCharges < 2)
-        {
-            StartCoroutine(DashRecharge());
         }
     }
 
@@ -80,7 +74,6 @@ public class PlayerMovement : MonoBehaviour
     private IEnumerator Dash()
     {
         Vector3 movement = new Vector3(playerInput.actions["Move"].ReadValue<Vector2>().x, 0, playerInput.actions["Move"].ReadValue<Vector2>().y);
-        canDash = false;
         isDashing = true;
         rb.linearVelocity += (transform.TransformDirection(movement) * dashingPower);
         dashCharges--;
@@ -88,19 +81,39 @@ public class PlayerMovement : MonoBehaviour
         rb.linearVelocity = Vector3.zero;
         yield return new WaitForSeconds(midDashDuration);
         isDashing = false;
-        canDash = true;
     }
 
-    private IEnumerator DashRecharge()
+    private void DashRecharge()
     {
-        for (int i = 0; i < 2 - dashCharges; i++)
+        if (dashCharges < 2)
         {
-            yield return new WaitForSeconds(dashCooldown);
-            dashCharges++;
+            dashTimer -= Time.deltaTime;
+            if (dashTimer <= 0)
+            {
+                dashCharges++;
+                dashTimer = dashCooldown;
+            }
         }
+    }
+
+    // Getters for UI updates
+    public int getDashCharges()
+    {
+        return dashCharges;
+    }
+
+    public float getDashTimer()
+    {
+        return dashTimer;
+    }
+
+    public float getDashCooldown()
+    {
+        return dashCooldown;
     }
 }
 
+// structs for mouse sensitivity, camera rotation, and camera angle
 [System.Serializable]
 public struct MouseSensitivity
 {
