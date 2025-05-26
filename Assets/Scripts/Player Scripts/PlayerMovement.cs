@@ -17,7 +17,6 @@ public class PlayerMovement : MonoBehaviour
     public float dashingPower = 200f;
     private float dashDuration = 0.5f;
     private float dashCooldown = 3.0f;
-    private float midDashDuration = 0.01f;
     private int dashCharges = 2;
     private float dashTimer = 3.0f;
 
@@ -59,8 +58,8 @@ public class PlayerMovement : MonoBehaviour
     }
     private void dodgeDash()
     {
-        canDash = (dashCharges > 0) && !isDashing;
-        if (canDash && !isDashing)
+        canDash = (dashCharges > 0);
+        if (canDash)
         {
             InputAction dashinput = playerInput.actions["Dash"];
             if (dashinput.WasPressedThisFrame() && dashCharges > 0)
@@ -77,9 +76,12 @@ public class PlayerMovement : MonoBehaviour
         isDashing = true;
         rb.linearVelocity += (transform.TransformDirection(movement) * dashingPower);
         dashCharges--;
+        int dashChargeRecord = dashCharges;
         yield return new WaitForSeconds(dashDuration);
-        rb.linearVelocity = Vector3.zero;
-        yield return new WaitForSeconds(midDashDuration);
+        if (dashChargeRecord == dashCharges)
+        {
+            rb.linearVelocity = Vector3.zero;
+        }
         isDashing = false;
     }
 
