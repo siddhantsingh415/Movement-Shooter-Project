@@ -9,6 +9,8 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody rb;
     private PlayerInput playerInput;
     private Camera mainCamera;
+    [SerializeField] private Animator animator;
+    [SerializeField] private Transform spineTransform;
     [SerializeField] private MouseSensitivity mouseSensitivity;
     private CamerRotation cameraRotation;
     [SerializeField] private CameraAngle cameraAngle;
@@ -46,6 +48,14 @@ public class PlayerMovement : MonoBehaviour
     {
         // Create a new Vector3 for movement
         Vector3 movement = new Vector3(playerInput.actions["Move"].ReadValue<Vector2>().x, 0, playerInput.actions["Move"].ReadValue<Vector2>().y);
+        if (movement.magnitude == 0)
+        {
+            animator.SetBool("isRunning", false);
+        }
+        else
+        {
+            animator.SetBool("isRunning", true);
+        }
         transform.Translate(movement * speed * Time.deltaTime);
     }
 
@@ -55,7 +65,7 @@ public class PlayerMovement : MonoBehaviour
         cameraRotation.pitch -= mousePos.y * mouseSensitivity.vertical * Time.deltaTime;
         cameraRotation.yaw += mousePos.x * mouseSensitivity.horizontal * Time.deltaTime;
         cameraRotation.pitch = Mathf.Clamp(cameraRotation.pitch, cameraAngle.min, cameraAngle.max);
-        mainCamera.transform.eulerAngles = new Vector3(cameraRotation.pitch, cameraRotation.yaw, 0.0f);
+        spineTransform.eulerAngles = new Vector3(cameraRotation.pitch, cameraRotation.yaw, 0.0f);
         transform.eulerAngles = new Vector3(0.0f, cameraRotation.yaw, 0.0f);
     }
 
