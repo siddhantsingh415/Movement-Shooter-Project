@@ -16,7 +16,12 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private CameraAngle cameraAngle;
     bool canDash = true;
     bool isDashing = false;
-    public float dashingPower = 200f;
+    private bool isGrounded;
+    private int jumpCharges = 1;
+    [SerializeField]
+    private float dashingPower = 50f;
+    [SerializeField]
+    private float jumpforce = 5f;
     private float dashDuration = 0.5f;
     private float dashCooldown = 3.0f;
     private int dashCharges = 2;
@@ -40,6 +45,7 @@ public class PlayerMovement : MonoBehaviour
         look();
         dodgeDash();
         DashRecharge();
+        Jump();
     }
 
     // methods for player movement and camera control
@@ -47,6 +53,11 @@ public class PlayerMovement : MonoBehaviour
     void movePlayer()
     {
         // Create a new Vector3 for movement
+
+        if (!isGrounded)
+        {
+            return;
+        }
         Vector3 movement = new Vector3(playerInput.actions["Move"].ReadValue<Vector2>().x, 0, playerInput.actions["Move"].ReadValue<Vector2>().y);
         if (movement.magnitude == 0)
         {
@@ -73,11 +84,11 @@ public class PlayerMovement : MonoBehaviour
 
     private void dodgeDash()
     {
-        canDash = (dashCharges > 0);
-        if (canDash)
+        canDash = dashCharges > 0;
+        if (canDash && isGrounded)
         {
             InputAction dashinput = playerInput.actions["Dash"];
-            if (dashinput.WasPressedThisFrame() && dashCharges > 0)
+            if (dashinput.WasPressedThisFrame() && dashCharges > 0 && !isDashing)
             {
                 StartCoroutine(Dash());
             }
@@ -88,14 +99,13 @@ public class PlayerMovement : MonoBehaviour
     {
         Vector3 movement = new Vector3(playerInput.actions["Move"].ReadValue<Vector2>().x, 0, playerInput.actions["Move"].ReadValue<Vector2>().y);
         isDashing = true;
-        rb.linearVelocity += (transform.TransformDirection(movement) * dashingPower);
+        rb.linearVelocity += transform.TransformDirection(movement) * dashingPower;
         dashCharges--;
-        int dashChargeRecord = dashCharges;
+
         yield return new WaitForSeconds(dashDuration);
-        if (dashChargeRecord == dashCharges)
-        {
-            rb.linearVelocity = Vector3.zero;
-        }
+
+        rb.linearVelocity = Vector3.zero;
+
         isDashing = false;
     }
 
@@ -109,6 +119,30 @@ public class PlayerMovement : MonoBehaviour
                 dashCharges++;
                 dashTimer = dashCooldown;
             }
+        }
+    }
+
+    private void Jump()
+    {
+        if (playerInput.actions["Jump"].WasPressedThisFrame() && jumpCharges > 0 && isGrounded)
+        {
+            Debug.Log("Jump");
+            Vector3 movement = new Vector3(playerInput.actions["Move"].ReadValue<Vector2>().x, 0, playerInput.actions["Move"].ReadValue<Vector2>().y);
+            rb.linearVelocity += transform.TransformDirection(movement) * speed;
+            rb.linearVelocity += new Vector3(0, jumpforce, 0);
+            jumpCharges--;
+            isGrounded = false;
+        }
+    }
+
+    // Check if the player is grounded
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGrounded = true;
+            jumpCharges = 1; // Reset jump charges when grounded
         }
     }
 
