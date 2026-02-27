@@ -21,11 +21,12 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField]
     private float dashingPower = 50f;
     [SerializeField]
-    private float jumpforce = 5f;
+    private float jumpforce = 60f;
     private float dashDuration = 0.5f;
     private float dashCooldown = 3.0f;
     private int dashCharges = 2;
     private float dashTimer = 3.0f;
+    private float arealControlFactor = 0.5f;
 
 
     // Start is called once before the first execution of Update
@@ -53,12 +54,7 @@ public class PlayerMovement : MonoBehaviour
     void movePlayer()
     {
         // Create a new Vector3 for movement
-
-        if (!isGrounded)
-        {
-            return;
-        }
-        Vector3 movement = new Vector3(playerInput.actions["Move"].ReadValue<Vector2>().x, 0, playerInput.actions["Move"].ReadValue<Vector2>().y);
+        Vector3 movement = new Vector3(-playerInput.actions["Move"].ReadValue<Vector2>().x, 0, -playerInput.actions["Move"].ReadValue<Vector2>().y);
         if (movement.magnitude == 0)
         {
             animator.SetBool("isRunning", false);
@@ -76,7 +72,7 @@ public class PlayerMovement : MonoBehaviour
         cameraRotation.pitch -= mousePos.y * mouseSensitivity.vertical * Time.deltaTime;
         cameraRotation.yaw += mousePos.x * mouseSensitivity.horizontal * Time.deltaTime;
         cameraRotation.pitch = Mathf.Clamp(cameraRotation.pitch, cameraAngle.min, cameraAngle.max);
-        spineTransform.eulerAngles = new Vector3(cameraRotation.pitch, cameraRotation.yaw, 0.0f);
+        spineTransform.eulerAngles = new Vector3(cameraRotation.pitch, spineTransform.eulerAngles.y, 0.0f);
         transform.eulerAngles = new Vector3(0.0f, cameraRotation.yaw, 0.0f);
     }
 
@@ -97,7 +93,7 @@ public class PlayerMovement : MonoBehaviour
 
     private IEnumerator Dash()
     {
-        Vector3 movement = new Vector3(playerInput.actions["Move"].ReadValue<Vector2>().x, 0, playerInput.actions["Move"].ReadValue<Vector2>().y);
+        Vector3 movement = new Vector3(-playerInput.actions["Move"].ReadValue<Vector2>().x, 0, -playerInput.actions["Move"].ReadValue<Vector2>().y);
         isDashing = true;
         rb.linearVelocity += transform.TransformDirection(movement) * dashingPower;
         dashCharges--;
@@ -126,10 +122,11 @@ public class PlayerMovement : MonoBehaviour
     {
         if (playerInput.actions["Jump"].WasPressedThisFrame() && jumpCharges > 0 && isGrounded)
         {
-            Debug.Log("Jump");
-            Vector3 movement = new Vector3(playerInput.actions["Move"].ReadValue<Vector2>().x, 0, playerInput.actions["Move"].ReadValue<Vector2>().y);
-            rb.linearVelocity += transform.TransformDirection(movement) * speed;
-            rb.linearVelocity += new Vector3(0, jumpforce, 0);
+            // apply jump force and offer reduced movemednt control while in air (preserve existing horizontal velocity and add small mid air control)
+            Vector3 movement = new Vector3(-playerInput.actions["Move"].ReadValue<Vector2>().x, 0, -playerInput.actions["Move"].ReadValue<Vector2>().y);
+            rb.linearVelocity = transform.TransformDirection(movement) * (speed * arealControlFactor);
+
+            rb.linearVelocity += Vector3.up * jumpforce;
             jumpCharges--;
             isGrounded = false;
         }
