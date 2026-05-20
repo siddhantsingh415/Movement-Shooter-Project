@@ -17,7 +17,7 @@ public class PlayerMovement : MonoBehaviour
     private bool isGrounded;
     private int jumpCharges = 1;
     [SerializeField]
-    private float dashingPower = 50f;
+    private float dashingPower = 10f;
     [SerializeField]
     private float jumpforce = 60f;
     private float dashCooldown = 3.0f;
@@ -82,11 +82,11 @@ public class PlayerMovement : MonoBehaviour
         InputAction dashinput = playerInput.actions["Dash"];
         if (dashinput.WasPressedThisFrame() && dashCharges > 0)
         {
-            if (rb.linearVelocity.magnitude == 0)
+            if (rb.linearVelocity.sqrMagnitude == 0)
             {
-                rb.AddForce(Vector3.forward * (dashingPower * speed), ForceMode.Impulse); // Default dash direction if no input
+                rb.AddForce(Vector3.forward * (dashingPower * speed), ForceMode.VelocityChange); // Default dash direction if no input
             } else {
-                rb.AddForce(rb.linearVelocity * dashingPower, ForceMode.Impulse);
+                rb.AddForce(rb.linearVelocity * dashingPower, ForceMode.VelocityChange);
             }
             dashCharges--;        }
     }
@@ -109,8 +109,8 @@ public class PlayerMovement : MonoBehaviour
         if (playerInput.actions["Jump"].WasPressedThisFrame() && jumpCharges > 0 && isGrounded)
         {
             // apply jump force and offer reduced movement control while in air (preserve existing horizontal velocity and add small mid air control)
+            rb.AddForce(Vector3.up * jumpforce, ForceMode.VelocityChange);
             rb.linearVelocity *= arealControlFactor;
-            rb.linearVelocity += Vector3.up * jumpforce;
             Debug.Log("Jumped");
             jumpCharges--;
             isGrounded = false;
