@@ -61,7 +61,7 @@ public class PlayerMovement : MonoBehaviour
         {
             animator.SetBool("isRunning", true);
         }
-        rb.linearVelocity = new Vector3(movement.x * speed, rb.linearVelocity.y, movement.z * speed);
+        rb.AddForce(movement * speed, ForceMode.VelocityChange);
     }
 
     void look()
@@ -82,13 +82,12 @@ public class PlayerMovement : MonoBehaviour
         InputAction dashinput = playerInput.actions["Dash"];
         if (dashinput.WasPressedThisFrame() && dashCharges > 0)
         {
-            Vector3 movement = new Vector3(-playerInput.actions["Move"].ReadValue<Vector2>().x, 0, -playerInput.actions["Move"].ReadValue<Vector2>().y);
-            if (movement.magnitude == 0)
+            if (rb.linearVelocity.magnitude == 0)
             {
-                movement = -Vector3.forward; // Default dash direction if no input
+                rb.AddForce(Vector3.forward * (dashingPower * speed), ForceMode.Impulse); // Default dash direction if no input
+            } else {
+                rb.AddForce(rb.linearVelocity * dashingPower, ForceMode.Impulse);
             }
-
-            rb.AddForce(transform.TransformDirection(movement) * dashingPower, ForceMode.VelocityChange);
             dashCharges--;        }
     }
 
