@@ -61,7 +61,7 @@ public class PlayerMovement : MonoBehaviour
         {
             animator.SetBool("isRunning", true);
         }
-        rb.linearVelocity = movement * speed;
+        rb.linearVelocity = new Vector3(movement.x * speed, rb.linearVelocity.y, movement.z * speed);
     }
 
     void look()
